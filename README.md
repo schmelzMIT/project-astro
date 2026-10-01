@@ -41,8 +41,12 @@ Run these commands from any directory. They install system packages.
 sudo apt update
 sudo apt install -y \
 	git curl wget ca-certificates gnupg lsb-release \
+	software-properties-common \
 	build-essential cmake ninja-build pkg-config \
 	python3-dev python3-pip python3-venv
+
+sudo add-apt-repository -y universe
+sudo apt update
 ```
 
 #### 2. Install ROS 2 Humble
@@ -68,8 +72,9 @@ sudo apt install -y \
 	python3-colcon-common-extensions \
 	python3-rosdep \
 	python3-vcstool \
-	python3-pyquaternion \
 	python3-numpy
+
+python3 -m pip install --user pyquaternion
 
 source /opt/ros/humble/setup.bash
 sudo rosdep init 2>/dev/null || true
@@ -308,7 +313,7 @@ The setup file performs these steps automatically, in this order:
 	normal user with `sudo` access.
 2. Installs Git, compilers, CMake, Python, and other Ubuntu build tools.
 3. Adds the ROS 2 apt repository and installs ROS 2 Humble, `colcon`, `rosdep`,
-	NumPy, and `pyquaternion`.
+	and NumPy, then installs the Python package `pyquaternion` with `pip`.
 4. Initializes and updates `rosdep`.
 5. Clones PX4-Autopilot recursively, or updates its existing submodules, then
 	runs PX4's `Tools/setup/ubuntu.sh` to install PX4 and Gazebo dependencies.

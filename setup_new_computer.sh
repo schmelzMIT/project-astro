@@ -31,8 +31,12 @@ sudo -v
 sudo apt update
 sudo apt install -y \
   git curl wget ca-certificates gnupg lsb-release \
+  software-properties-common \
   build-essential cmake ninja-build pkg-config \
   python3-dev python3-pip python3-venv
+
+sudo add-apt-repository -y universe
+sudo apt update
 
 sudo locale-gen en_US en_US.UTF-8
 sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
@@ -49,9 +53,10 @@ sudo apt install -y \
   python3-colcon-common-extensions \
   python3-rosdep \
   python3-vcstool \
-  python3-pyquaternion \
   python3-numpy \
   libblas-dev liblapack-dev liblapacke-dev
+
+python3 -m pip install --user pyquaternion
 
 # shellcheck disable=SC1091
 source /opt/ros/humble/setup.bash
