@@ -10,43 +10,14 @@ ROS, Gazebo, PX4, acados, and Micro XRCE-DDS are external dependencies. They
 are installed on the computer running the project and are not copied into this
 repository.
 
-### Automatic installation
+### Manual installation
 
-After downloading or cloning this repository, run the installer from its root:
+Follow the manual installation commands below if you want to see and control
+each setup step individually. The automatic installation section appears
+after these commands; it is called automatic because the same steps are
+already implemented in `setup_new_computer.sh`.
 
-```bash
-cd ~/project-astro
-chmod +x setup_new_computer.sh
-./setup_new_computer.sh
-```
-
-The script installs ROS 2, build tools, PX4 dependencies/Gazebo, Micro
-XRCE-DDS Agent, acados, CasADi, and this workspace's ROS dependencies. It may
-ask for your `sudo` password and may ask you to log out and back in after the
-PX4 setup step.
-
-For an ATMOS PX4 fork, set the repository URL before running it:
-
-```bash
-PX4_REPO_URL=https://github.com/YOUR_ORGANIZATION/YOUR_ATMOS_PX4_FORK.git \
-	./setup_new_computer.sh
-```
-
-The repository includes ATMOS's custom `dds_topics.yaml` at
-`config/dds_topics.yaml`. To copy this tracked file into the PX4 checkout,
-enable the optional installer step:
-
-```bash
-INSTALL_ATMOS_DDS_TOPICS=1 ./setup_new_computer.sh
-```
-
-The script adds ROS 2 and the Project Astro workspace to `~/.bashrc`. Open a
-new terminal, or run `source ~/.bashrc`, after it finishes.
-
-The installer does not install QGroundControl automatically. It also cannot
-create the `gz_atmos` model if the selected PX4 repository does not contain it.
-
-### 1. Install base tools
+#### 1. Install base tools
 
 ```bash
 sudo apt update
@@ -56,7 +27,7 @@ sudo apt install -y \
 	python3-dev python3-pip python3-venv
 ```
 
-### 2. Install ROS 2 Humble
+#### 2. Install ROS 2 Humble
 
 Configure the ROS 2 apt repository, then install ROS and workspace tools:
 
@@ -91,7 +62,7 @@ echo 'source /opt/ros/humble/setup.bash' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### 3. Download Project Astro
+#### 3. Download Project Astro
 
 ```bash
 cd ~
@@ -99,7 +70,7 @@ git clone https://github.com/schmelzMIT/project-astro.git
 cd ~/project-astro
 ```
 
-### 4. Install PX4 and Gazebo
+#### 4. Install PX4 and Gazebo
 
 PX4 provides the SITL simulator and the Gazebo vehicle models. Clone the PX4
 version or ATMOS-compatible fork required by your simulation:
@@ -128,7 +99,7 @@ Use the ATMOS guide or the project-specific PX4 fork when running:
 make px4_sitl_spacecraft gz_atmos
 ```
 
-### ATMOS PX4 configuration
+#### ATMOS PX4 configuration
 
 For the ATMOS spacecraft, configure the PX4 checkout after the installer has
 finished. ATMOS uses the tracked PX4 DDS topic list. Copy it into the PX4
@@ -170,7 +141,7 @@ The board must be connected by USB and visible to the user running the
 command. For multiple vehicles, give each vehicle a unique PX4 namespace and
 `MAV_SYS_ID`.
 
-### ATMOS Ethernet or serial DDS configuration
+#### ATMOS Ethernet or serial DDS configuration
 
 For physical hardware, complete the optional QGroundControl installation in
 step 8 before applying the parameters below. This section is not required for
@@ -198,7 +169,7 @@ supports it. Do not configure MAVLink and uXRCE-DDS on the same serial port.
 For USB MAVLink/QGroundControl, keep `SYS_USB_AUTO` set to `Auto-detect` or
 `MAVLink`.
 
-### 5. Install Micro XRCE-DDS Agent
+#### 5. Install Micro XRCE-DDS Agent
 
 The agent bridges PX4's uXRCE-DDS client to ROS 2:
 
@@ -220,7 +191,7 @@ Start it in a separate terminal before launching a ROS 2 controller:
 micro-xrce-dds-agent udp4 --port 8888
 ```
 
-### 6. Install acados and CasADi
+#### 6. Install acados and CasADi
 
 The MPC controllers use acados and CasADi. Build acados outside this
 repository, then install its Python interface:
@@ -256,7 +227,7 @@ If this project uses generated acados solver code, generate it after acados is
 installed and keep the generated output out of Git unless the project
 explicitly requires it.
 
-### 7. Install project dependencies and build
+#### 7. Install project dependencies and build
 
 ```bash
 source /opt/ros/humble/setup.bash
@@ -273,7 +244,7 @@ echo 'source ~/project-astro/install/setup.bash' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### 8. Install QGroundControl (optional)
+#### 8. Install QGroundControl (optional)
 
 QGroundControl is optional for headless SITL. Download the current AppImage
 from <https://docs.qgroundcontrol.com/master/en/getting_started/download_and_install.html>,
@@ -286,6 +257,180 @@ chmod +x ~/Downloads/QGroundControl*.AppImage
 
 The AppImage filename may differ. For real hardware, use QGroundControl or a
 physical RC transmitter to keep a manual override available.
+
+### Automatic installation (`setup_new_computer.sh`)
+
+This section is called **automatic installation** because every software setup
+step listed above is already implemented in `setup_new_computer.sh`. Choose
+this section instead of repeating the manual commands above:
+
+```bash
+cd ~/project-astro
+chmod +x setup_new_computer.sh
+./setup_new_computer.sh
+```
+
+The setup file performs these steps automatically, in this order:
+
+1. Checks that the computer is Ubuntu 22.04 and that the script is run by a
+	normal user with `sudo` access.
+2. Installs Git, compilers, CMake, Python, and other Ubuntu build tools.
+3. Adds the ROS 2 apt repository and installs ROS 2 Humble, `colcon`, `rosdep`,
+	NumPy, and `pyquaternion`.
+4. Initializes and updates `rosdep`.
+5. Clones PX4-Autopilot recursively, or updates its existing submodules, then
+	runs PX4's `Tools/setup/ubuntu.sh` to install PX4 and Gazebo dependencies.
+6. Optionally copies `config/dds_topics.yaml` into the PX4 checkout when
+	`INSTALL_ATMOS_DDS_TOPICS=1` is set.
+7. Clones, compiles, and installs the Micro XRCE-DDS Agent.
+8. Clones, compiles, and installs acados, CasADi, and the acados Python
+	interface.
+9. Configures the acados environment and runs `rosdep install` and
+	`colcon build` for Project Astro.
+10. Adds ROS 2, Project Astro, and acados environment settings to `~/.bashrc`.
+
+For an ATMOS PX4 fork, set the repository URL before running the setup file:
+
+```bash
+PX4_REPO_URL=https://github.com/YOUR_ORGANIZATION/YOUR_ATMOS_PX4_FORK.git \
+	./setup_new_computer.sh
+```
+
+To copy the tracked ATMOS DDS topic configuration into PX4 during setup:
+
+```bash
+INSTALL_ATMOS_DDS_TOPICS=1 ./setup_new_computer.sh
+```
+
+The setup file does not install QGroundControl or configure physical Pixhawk
+hardware. Open a new terminal, or run `source ~/.bashrc`, after it finishes.
+
+## Physical ATMOS hardware setup
+
+The following steps are adapted from the official [ATMOS Pixhawk
+guide](https://atmos.discower.io/pages/PX4/) and [onboard computer
+guide](https://atmos.discower.io/pages/Jetson/). They apply to a Pixhawk 6X
+Mini and an Ubuntu 22.04 onboard computer such as the NVIDIA Jetson Orin NX.
+Do not apply the example IP addresses blindly to a different network.
+
+### Configure the Pixhawk in QGroundControl
+
+Connect the Pixhawk by USB, open QGroundControl, and configure the vehicle:
+
+1. Select the `Spacecraft` airframe and `KTH ATMOS Freeflyer`, then reboot
+	when QGroundControl requests it.
+2. Calibrate the RC transmitter under **Vehicle Setup > Radio**.
+3. Assign switches for arming/disarming, manual or stabilized control, and
+	Offboard mode under **Flight Modes**.
+4. Keep `SYS_USB_AUTO` set to `Auto-detect` or `MAVLink` for USB
+	QGroundControl access.
+5. Give each vehicle a unique `MAV_SYS_ID` when operating multiple vehicles.
+
+### Configure the Pixhawk Ethernet connection
+
+In QGroundControl, open **Analyze Tools > MAVLink Console** and configure the
+Pixhawk Ethernet interface. The ATMOS example uses `192.168.0.10` for the
+Pixhawk and `192.168.0.1` for the onboard computer:
+
+```text
+echo DEVICE=eth0 > /fs/microsd/net.cfg
+echo BOOTPROTO=fallback >> /fs/microsd/net.cfg
+echo IPADDR=192.168.0.10 >> /fs/microsd/net.cfg
+echo NETMASK=255.255.255.0 >> /fs/microsd/net.cfg
+echo ROUTER=192.168.0.254 >> /fs/microsd/net.cfg
+echo DNS=192.168.0.254 >> /fs/microsd/net.cfg
+```
+
+Reboot the Pixhawk, then verify the network configuration:
+
+```text
+netman showw
+```
+
+For Ethernet DDS, set these parameters in QGroundControl and reboot again:
+
+```text
+UXRCE_DDS_CFG = Ethernet
+UXRCE_DDS_AG_IP = -1062731775
+```
+
+The value `-1062731775` represents agent IP `192.168.0.1`. For another agent
+address, calculate the value with:
+
+```bash
+cd ~/PX4-Autopilot
+python3 Tools/convert_ip.py "<onboard-computer-ip>"
+```
+
+For serial DDS instead, select the appropriate `UXRCE_DDS_CFG` value and set
+the matching `SER_<port>_BAUD` parameter. Use `921600` or higher only when the
+connection supports it, and do not assign MAVLink and uXRCE-DDS to the same
+serial port.
+
+### Configure the onboard computer network
+
+On the onboard computer, identify the wired connection:
+
+```bash
+nmcli connection show
+```
+
+Set a static address of `192.168.0.1/24` on the connection used for PX4. Edit
+the matching NetworkManager file, replacing the placeholder with its actual
+name:
+
+```bash
+sudo nano "/etc/NetworkManager/system-connections/<your-wired-connection>.nmconnection"
+sudo systemctl restart NetworkManager
+```
+
+The IPv4 section should use `method=manual` and an address such as:
+
+```text
+address1=192.168.0.1/24,192.168.0.254
+```
+
+### Run the DDS Agent as a service
+
+The setup script builds a local DDS Agent for development. For an onboard
+computer that should start it automatically, the ATMOS guide instead uses the
+Snap package. Choose one installation method; do not run both agents on port
+`8888`:
+
+```bash
+sudo snap install micro-xrce-dds-agent --edge
+sudo snap set micro-xrce-dds-agent daemon=true
+sudo snap set micro-xrce-dds-agent transport=udp4
+sudo snap set micro-xrce-dds-agent port=8888
+sudo systemctl enable --now snap.micro-xrce-dds-agent.daemon.service
+```
+
+For serial transport, replace the transport settings with:
+
+```bash
+sudo snap set micro-xrce-dds-agent transport=serial
+sudo snap set micro-xrce-dds-agent device=<obc-serial-port>
+sudo snap set micro-xrce-dds-agent baudrate=<px4-baudrate>
+sudo systemctl enable --now snap.micro-xrce-dds-agent.daemon.service
+```
+
+### Verify the hardware connection
+
+After sourcing ROS and the workspace, verify that PX4 topics are visible:
+
+```bash
+ros2 topic list
+ros2 topic echo /fmu/out/vehicle_attitude
+```
+
+For an Ethernet vehicle, connect QGroundControl from the ground-control
+computer using a TCP link to the vehicle's configured address and default
+port.
+
+The ATMOS guide also describes USB udev rules, MAVLink Router, and systemd
+startup services from its separate `FF_OBC_Setup` repository. Those files are
+not part of `project-astro` because they contain machine- and deployment-
+specific service configuration.
 
 For future terminals, source both environments:
 
