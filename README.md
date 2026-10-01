@@ -17,7 +17,25 @@ each setup step individually. The automatic installation section appears
 after these commands; it is called automatic because the same steps are
 already implemented in `setup_new_computer.sh`.
 
+### Where each repository belongs
+
+Keep Project Astro at `~/project-astro`. The external repositories are sibling
+directories in your home directory, not subdirectories of Project Astro:
+
+```text
+~/project-astro/          this repository
+~/PX4-Autopilot/          PX4 firmware and Gazebo
+~/Micro-XRCE-DDS-Agent/   DDS Agent source
+~/acados/                 acados source and libraries
+```
+
+Commands that build Project Astro use `cd ~/project-astro`. Commands that
+install or build PX4, Micro XRCE-DDS, or acados use their separate paths under
+`~`. Do not clone those external repositories into `~/project-astro`.
+
 #### 1. Install base tools
+
+Run these commands from any directory. They install system packages.
 
 ```bash
 sudo apt update
@@ -28,6 +46,9 @@ sudo apt install -y \
 ```
 
 #### 2. Install ROS 2 Humble
+
+Run these commands from any directory. They install system-wide ROS packages
+and configure the ROS environment.
 
 Configure the ROS 2 apt repository, then install ROS and workspace tools:
 
@@ -64,6 +85,8 @@ source ~/.bashrc
 
 #### 3. Download Project Astro
 
+Clone this repository into `~/project-astro`:
+
 ```bash
 cd ~
 git clone https://github.com/schmelzMIT/project-astro.git
@@ -71,6 +94,8 @@ cd ~/project-astro
 ```
 
 #### 4. Install PX4 and Gazebo
+
+Keep PX4 outside the project at `~/PX4-Autopilot`:
 
 PX4 provides the SITL simulator and the Gazebo vehicle models. Clone the PX4
 version or ATMOS-compatible fork required by your simulation:
@@ -171,6 +196,9 @@ For USB MAVLink/QGroundControl, keep `SYS_USB_AUTO` set to `Auto-detect` or
 
 #### 5. Install Micro XRCE-DDS Agent
 
+Keep the DDS Agent source outside the project at
+`~/Micro-XRCE-DDS-Agent`:
+
 The agent bridges PX4's uXRCE-DDS client to ROS 2:
 
 ```bash
@@ -192,6 +220,8 @@ micro-xrce-dds-agent udp4 --port 8888
 ```
 
 #### 6. Install acados and CasADi
+
+Keep acados outside the project at `~/acados`:
 
 The MPC controllers use acados and CasADi. Build acados outside this
 repository, then install its Python interface:
@@ -228,6 +258,8 @@ installed and keep the generated output out of Git unless the project
 explicitly requires it.
 
 #### 7. Install project dependencies and build
+
+Run this step inside `~/project-astro`:
 
 ```bash
 source /opt/ros/humble/setup.bash
