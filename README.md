@@ -511,6 +511,83 @@ ros2 launch px4_mpc mpc_quadrotor_launch.py
 See the package documentation under `src/` for controller modes, namespaces,
 RViz options, and hardware-specific instructions.
 
+## Creating a Gazebo formation file
+
+The ROS packages in this repository do not currently contain the Gazebo model
+or world that creates an ATMOS M formation. Those files belong to the PX4
+Gazebo simulation tree, normally outside this repository at
+`~/PX4-Autopilot`. You can document or develop a custom formation there, then
+copy project-owned files into this repository if you want to version them.
+
+### Choose the file type
+
+- Use an **SDF model file** (`.sdf`) to define one vehicle or formation model.
+- Use a **world file** (`.sdf` or `.world`) to define the scene and insert
+	several models at different poses.
+- Use a **ROS/Python node** when the formation must change during flight or
+	vehicles must receive separate control commands. A static SDF only creates
+	the visual objects; it does not make them autonomous.
+
+### Create a static M formation
+
+Start by copying an existing PX4/Gazebo model or world from the PX4 checkout.
+Do not create a blank SDF and expect PX4 plugins, sensors, and controllers to
+work automatically:
+
+```bash
+find ~/PX4-Autopilot -type f \
+	\( -iname '*atmos*' -o -iname '*spacecraft*' -o -iname '*.sdf' -o -iname '*.world' \) \
+	-not -path '*/.git/*' | sort
+```
+
+Create a project-owned directory for formation assets if you intend to keep
+them in Git:
+
+```bash
+cd ~/project-astro
+mkdir -p simulation/gazebo/worlds simulation/gazebo/models/atmos_formation
+```
+
+In the world file, insert one model for each vehicle and give every model a
+unique name and pose. For an M shape, use positions such as these as a starting
+point and adjust the scale for the vehicle size:
+
+```text
+vehicle_0: (-3.0,  2.0, 0.0)
+vehicle_1: (-1.0,  0.0, 0.0)
+vehicle_2: ( 0.0,  2.0, 0.0)
+vehicle_3: ( 1.0,  0.0, 0.0)
+vehicle_4: ( 3.0,  2.0, 0.0)
+```
+
+The exact SDF structure depends on the PX4/Gazebo version. Each inserted model
+must reference a valid model URI, include the plugins expected by PX4, and use
+unique PX4 system IDs or namespaces when controlled separately.
+
+### Validate and run the formation
+
+Validate an SDF or world file before starting PX4:
+
+```bash
+gz sdf -k simulation/gazebo/worlds/atmos_m_formation.sdf
+```
+
+Run the world by itself first to verify that all models are visible:
+
+```bash
+gz sim -r simulation/gazebo/worlds/atmos_m_formation.sdf
+```
+
+Only after the visual scene works should you connect PX4. If the world is
+launched separately, start PX4 in standalone Gazebo mode using the option
+supported by your PX4 version, then start the ROS nodes with matching
+namespaces. Check the PX4 documentation for that checkout before using
+`PX4_GZ_STANDALONE` because launch options differ between PX4 releases.
+
+For a formation that moves, add a ROS 2 node or controller that publishes
+separate setpoints for each vehicle. The formation world file alone cannot
+implement formation control.
+
 ## Control ATMOS
 
 ### Remote control and QGroundControl
