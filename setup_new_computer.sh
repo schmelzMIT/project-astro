@@ -7,6 +7,8 @@ PX4_DIR="${PX4_DIR:-$HOME/PX4-Autopilot}"
 PX4_REPO_URL="${PX4_REPO_URL:-https://github.com/PX4/PX4-Autopilot.git}"
 XRCE_DIR="${XRCE_DIR:-$HOME/Micro-XRCE-DDS-Agent}"
 ACADOS_DIR="${ACADOS_DIR:-$HOME/acados}"
+INSTALL_ATMOS_DDS_TOPICS="${INSTALL_ATMOS_DDS_TOPICS:-0}"
+ATMOS_DDS_TOPICS_URL="${ATMOS_DDS_TOPICS_URL:-https://atmos.discower.io/assets/px4_autopilot/dds_topics.yaml}"
 
 if [[ "$(uname -s)" != "Linux" || ! -f /etc/os-release ]]; then
   echo "This installer supports Ubuntu Linux only." >&2
@@ -64,6 +66,13 @@ else
 fi
 bash "${PX4_DIR}/Tools/setup/ubuntu.sh"
 
+if [[ "${INSTALL_ATMOS_DDS_TOPICS}" == "1" ]]; then
+  DDS_TOPICS_FILE="${PX4_DIR}/src/modules/uxrce_dds_client/dds_topics.yaml"
+  wget -qO "${DDS_TOPICS_FILE}.atmos" "${ATMOS_DDS_TOPICS_URL}"
+  mv "${DDS_TOPICS_FILE}.atmos" "${DDS_TOPICS_FILE}"
+  echo "Installed ATMOS DDS topics at ${DDS_TOPICS_FILE}"
+fi
+
 if [[ ! -d "${XRCE_DIR}/.git" ]]; then
   git clone https://github.com/eProsima/Micro-XRCE-DDS-Agent.git "${XRCE_DIR}"
 fi
@@ -89,12 +98,20 @@ cd "${PROJECT_DIR}"
 rosdep install --from-paths src --ignore-src -r -y
 colcon build --symlink-install
 
+ROS_SOURCE="source /opt/ros/humble/setup.bash"
+PROJECT_SOURCE="source ${PROJECT_DIR}/install/setup.bash"
+grep -qxF "${ROS_SOURCE}" "${HOME}/.bashrc" || echo "${ROS_SOURCE}" >> "${HOME}/.bashrc"
+grep -qxF "${PROJECT_SOURCE}" "${HOME}/.bashrc" || echo "${PROJECT_SOURCE}" >> "${HOME}/.bashrc"
+
 cat <<EOF
 
 Installation finished.
 
 Project: ${PROJECT_DIR}
 PX4:     ${PX4_DIR}
+
+To install ATMOS' custom DDS topic list, rerun with:
+  INSTALL_ATMOS_DDS_TOPICS=1 ${PROJECT_DIR}/setup_new_computer.sh
 
 For each new terminal, run:
   source /opt/ros/humble/setup.bash

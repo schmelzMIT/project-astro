@@ -32,6 +32,16 @@ PX4_REPO_URL=https://github.com/YOUR_ORGANIZATION/YOUR_ATMOS_PX4_FORK.git \
 	./setup_new_computer.sh
 ```
 
+To also download ATMOS's custom `dds_topics.yaml` into the PX4 checkout,
+enable the optional installer step:
+
+```bash
+INSTALL_ATMOS_DDS_TOPICS=1 ./setup_new_computer.sh
+```
+
+The script adds ROS 2 and the Project Astro workspace to `~/.bashrc`. Open a
+new terminal, or run `source ~/.bashrc`, after it finishes.
+
 The installer does not install QGroundControl automatically. It also cannot
 create the `gz_atmos` model if the selected PX4 repository does not contain it.
 
