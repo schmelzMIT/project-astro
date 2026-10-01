@@ -8,7 +8,6 @@ PX4_REPO_URL="${PX4_REPO_URL:-https://github.com/PX4/PX4-Autopilot.git}"
 XRCE_DIR="${XRCE_DIR:-$HOME/Micro-XRCE-DDS-Agent}"
 ACADOS_DIR="${ACADOS_DIR:-$HOME/acados}"
 INSTALL_ATMOS_DDS_TOPICS="${INSTALL_ATMOS_DDS_TOPICS:-0}"
-ATMOS_DDS_TOPICS_URL="${ATMOS_DDS_TOPICS_URL:-https://atmos.discower.io/assets/px4_autopilot/dds_topics.yaml}"
 
 if [[ "$(uname -s)" != "Linux" || ! -f /etc/os-release ]]; then
   echo "This installer supports Ubuntu Linux only." >&2
@@ -68,8 +67,7 @@ bash "${PX4_DIR}/Tools/setup/ubuntu.sh"
 
 if [[ "${INSTALL_ATMOS_DDS_TOPICS}" == "1" ]]; then
   DDS_TOPICS_FILE="${PX4_DIR}/src/modules/uxrce_dds_client/dds_topics.yaml"
-  wget -qO "${DDS_TOPICS_FILE}.atmos" "${ATMOS_DDS_TOPICS_URL}"
-  mv "${DDS_TOPICS_FILE}.atmos" "${DDS_TOPICS_FILE}"
+  cp "${PROJECT_DIR}/config/dds_topics.yaml" "${DDS_TOPICS_FILE}"
   echo "Installed ATMOS DDS topics at ${DDS_TOPICS_FILE}"
 fi
 

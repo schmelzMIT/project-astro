@@ -32,7 +32,8 @@ PX4_REPO_URL=https://github.com/YOUR_ORGANIZATION/YOUR_ATMOS_PX4_FORK.git \
 	./setup_new_computer.sh
 ```
 
-To also download ATMOS's custom `dds_topics.yaml` into the PX4 checkout,
+The repository includes ATMOS's custom `dds_topics.yaml` at
+`config/dds_topics.yaml`. To copy this tracked file into the PX4 checkout,
 enable the optional installer step:
 
 ```bash
@@ -44,72 +45,6 @@ new terminal, or run `source ~/.bashrc`, after it finishes.
 
 The installer does not install QGroundControl automatically. It also cannot
 create the `gz_atmos` model if the selected PX4 repository does not contain it.
-
-### ATMOS PX4 configuration
-
-For the ATMOS spacecraft, configure the PX4 checkout after the installer has
-finished. ATMOS uses a custom PX4 DDS topic list. Download it and replace the
-PX4 file before building firmware:
-
-```bash
-cd ~/PX4-Autopilot
-wget -O src/modules/uxrce_dds_client/dds_topics.yaml \
-	https://atmos.discower.io/assets/px4_autopilot/dds_topics.yaml
-```
-
-For a namespaced vehicle, set the namespace when building or uploading
-firmware. The ROS launch command must use the same namespace:
-
-```bash
-cd ~/PX4-Autopilot
-PX4_UXRCE_DDS_NS=pop make px4_sitl_spacecraft gz_atmos
-
-source /opt/ros/humble/setup.bash
-source ~/project-astro/install/setup.bash
-ros2 launch px4_mpc mpc_spacecraft_launch.py \
-	namespace:=pop mode:=wrench setpoint_from_rviz:=False
-```
-
-For a physical Pixhawk 6X Mini, upload the spacecraft firmware with:
-
-```bash
-cd ~/PX4-Autopilot
-make px4_fmu-v6x_spacecraft upload
-```
-
-To upload with a default namespace:
-
-```bash
-PX4_UXRCE_DDS_NS=pop make px4_fmu-v6x_spacecraft upload
-```
-
-The board must be connected by USB and visible to the user running the
-command. For multiple vehicles, give each vehicle a unique PX4 namespace and
-`MAV_SYS_ID`.
-
-### ATMOS Ethernet or serial DDS configuration
-
-For an Ethernet-connected Pixhawk, configure these PX4 parameters in
-QGroundControl and reboot the vehicle:
-
-```text
-UXRCE_DDS_CFG = Ethernet
-UXRCE_DDS_AG_IP = <agent IP encoded as an integer>
-```
-
-The ATMOS guide uses agent IP `192.168.0.1`, encoded as `-1062731775`. For a
-different address, run PX4's converter:
-
-```bash
-cd ~/PX4-Autopilot
-python3 Tools/convert_ip.py "192.168.0.1"
-```
-
-For serial transport, set `UXRCE_DDS_CFG` to the board's serial option and set
-the matching `SER_<port>_BAUD` parameter to `921600` or higher when the cable
-supports it. Do not configure MAVLink and uXRCE-DDS on the same serial port.
-For USB MAVLink/QGroundControl, keep `SYS_USB_AUTO` set to `Auto-detect` or
-`MAVLink`.
 
 ### 1. Install base tools
 
@@ -192,6 +127,76 @@ Use the ATMOS guide or the project-specific PX4 fork when running:
 ```bash
 make px4_sitl_spacecraft gz_atmos
 ```
+
+### ATMOS PX4 configuration
+
+For the ATMOS spacecraft, configure the PX4 checkout after the installer has
+finished. ATMOS uses the tracked PX4 DDS topic list. Copy it into the PX4
+source tree before building firmware:
+
+```bash
+cd ~/PX4-Autopilot
+cp ~/project-astro/config/dds_topics.yaml \
+	src/modules/uxrce_dds_client/dds_topics.yaml
+```
+
+For a namespaced vehicle, set the namespace when building or uploading
+firmware. The ROS launch command must use the same namespace:
+
+```bash
+cd ~/PX4-Autopilot
+PX4_UXRCE_DDS_NS=pop make px4_sitl_spacecraft gz_atmos
+
+source /opt/ros/humble/setup.bash
+source ~/project-astro/install/setup.bash
+ros2 launch px4_mpc mpc_spacecraft_launch.py \
+	namespace:=pop mode:=wrench setpoint_from_rviz:=False
+```
+
+For a physical Pixhawk 6X Mini, upload the spacecraft firmware with:
+
+```bash
+cd ~/PX4-Autopilot
+make px4_fmu-v6x_spacecraft upload
+```
+
+To upload with a default namespace:
+
+```bash
+PX4_UXRCE_DDS_NS=pop make px4_fmu-v6x_spacecraft upload
+```
+
+The board must be connected by USB and visible to the user running the
+command. For multiple vehicles, give each vehicle a unique PX4 namespace and
+`MAV_SYS_ID`.
+
+### ATMOS Ethernet or serial DDS configuration
+
+For physical hardware, complete the optional QGroundControl installation in
+step 8 before applying the parameters below. This section is not required for
+headless SITL.
+
+For an Ethernet-connected Pixhawk, configure these PX4 parameters in
+QGroundControl and reboot the vehicle:
+
+```text
+UXRCE_DDS_CFG = Ethernet
+UXRCE_DDS_AG_IP = <agent IP encoded as an integer>
+```
+
+The ATMOS guide uses agent IP `192.168.0.1`, encoded as `-1062731775`. For a
+different address, run PX4's converter:
+
+```bash
+cd ~/PX4-Autopilot
+python3 Tools/convert_ip.py "192.168.0.1"
+```
+
+For serial transport, set `UXRCE_DDS_CFG` to the board's serial option and set
+the matching `SER_<port>_BAUD` parameter to `921600` or higher when the cable
+supports it. Do not configure MAVLink and uXRCE-DDS on the same serial port.
+For USB MAVLink/QGroundControl, keep `SYS_USB_AUTO` set to `Auto-detect` or
+`MAVLink`.
 
 ### 5. Install Micro XRCE-DDS Agent
 
