@@ -241,6 +241,17 @@ python3 -m pip install --user casadi
 python3 -m pip install --user -e "$HOME/acados/interfaces/acados_template"
 ```
 
+Configure the acados environment for the current and future terminals:
+
+```bash
+sudo ldconfig
+echo 'export ACADOS_SOURCE_DIR=$HOME/acados' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=$HOME/acados/lib:${LD_LIBRARY_PATH:-}' >> ~/.bashrc
+source ~/.bashrc
+```
+
+The automatic installer applies these settings without adding duplicate lines.
+
 If this project uses generated acados solver code, generate it after acados is
 installed and keep the generated output out of Git unless the project
 explicitly requires it.

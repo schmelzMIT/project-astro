@@ -89,8 +89,12 @@ cmake -S "${ACADOS_DIR}" -B "${ACADOS_DIR}/build" \
   -DCMAKE_BUILD_TYPE=Release -DACADOS_WITH_QPOASES=ON
 cmake --build "${ACADOS_DIR}/build" --parallel
 sudo cmake --install "${ACADOS_DIR}/build"
+sudo ldconfig
 python3 -m pip install --user --upgrade pip casadi
 python3 -m pip install --user -e "${ACADOS_DIR}/interfaces/acados_template"
+
+export ACADOS_SOURCE_DIR="${ACADOS_DIR}"
+export LD_LIBRARY_PATH="${ACADOS_DIR}/lib:${LD_LIBRARY_PATH:-}"
 
 cd "${PROJECT_DIR}"
 rosdep install --from-paths src --ignore-src -r -y
@@ -98,8 +102,12 @@ colcon build --symlink-install
 
 ROS_SOURCE="source /opt/ros/humble/setup.bash"
 PROJECT_SOURCE="source ${PROJECT_DIR}/install/setup.bash"
+ACADOS_SOURCE="export ACADOS_SOURCE_DIR=${ACADOS_DIR}"
+ACADOS_LIBRARY_SOURCE="export LD_LIBRARY_PATH=${ACADOS_DIR}/lib:\${LD_LIBRARY_PATH:-}"
 grep -qxF "${ROS_SOURCE}" "${HOME}/.bashrc" || echo "${ROS_SOURCE}" >> "${HOME}/.bashrc"
 grep -qxF "${PROJECT_SOURCE}" "${HOME}/.bashrc" || echo "${PROJECT_SOURCE}" >> "${HOME}/.bashrc"
+grep -qxF "${ACADOS_SOURCE}" "${HOME}/.bashrc" || echo "${ACADOS_SOURCE}" >> "${HOME}/.bashrc"
+grep -qxF "${ACADOS_LIBRARY_SOURCE}" "${HOME}/.bashrc" || echo "${ACADOS_LIBRARY_SOURCE}" >> "${HOME}/.bashrc"
 
 cat <<EOF
 
